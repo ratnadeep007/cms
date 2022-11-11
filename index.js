@@ -1,22 +1,28 @@
-const mongodbURI = process.env.MONGODB_URI;
-const { MongoClient } = require('mongodb');
+const express = require('express');
+const { 
+  addToCollection, 
+  getFromCollection, 
+  addSchema, 
+  getSchema,
+  getForm,
+  addForm
+} = require('./src/api');
+const app = express();
+const port = process.env.PORT || 3000;
 
-const client = new MongoClient(mongodbURI);
+app.use(express.json());
 
-const dbName = 'test_collection';
+app.get('/status', (req, res) => {
+  res.statusCode = 200;
+  res.send({ message: 'working' });
+});
 
-async function main() {
-  await client.connect();
-  console.log('Connected');
-  const db = client.db(dbName);
-  const collection = db.collection('users');
-  collection.insertOne({
-    'name': 'Ratnadeep'
-  });
-  return 'data written';
-}
+app.post('/', addToCollection);
+app.get('/', getFromCollection);
+app.post('/schema', addSchema);
+app.get('/schema', getSchema);
+app.post('/form', addForm);
+app.get('/form', getForm);
 
-main()
-  .then(console.log)
-  .catch(console.error)
-  .finally(() => process.exit())
+
+app.listen(port, () => console.log(`🚀 Server started at port: ${port}`))
