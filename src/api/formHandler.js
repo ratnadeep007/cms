@@ -1,5 +1,4 @@
-const { getMongoClient } = require('../db');
-const { validateForm } = require('../utils');
+const { registerModels } = require('../db');
 
 async function addForm(req, res) {
     const form = req.body.form;
@@ -9,28 +8,34 @@ async function addForm(req, res) {
         return res.send({ 'error': 'Form is required' })
     }
 
-    const isFormValid = validateForm(form);
-    if (isFormValid.length) {
-        res.statusCode = 400;
-        return res.send({ 'error': isSchemaValid });
+    try {
+        const models = registerModels();
+        const Form = models.Form;
+        const newForm = new Form(form);
+        await newForm.save();
+    } catch(e) {
+        if (e.name === 'ValidationError') {
+            res.statusCode = 400;
+        } else {
+            res.statusCode = 500;
+        }
+        console.log(e);
+        return res.send({
+            'message': 'Insert Error',
+            'error': e
+        });
     }
-
-    const client = await getMongoClient();
-    const dbCollection = client.collection('forms');
-
-    await dbCollection.insertOne(form);
 
     res.statusCode = 201;
     return res.send({
-        'message': 'Data inserted in form',
-        'data': form
+        'message': 'Form inserted in form',
     });
 }
 
 async function getForm(req, res) {
-    const client = await getMongoClient();
-    const dbCollection = client.collection('forms');
-    const data = await dbCollection.find({}).toArray();
+    const models = registerModels();
+    const Form = models.Form;
+    const data = await Form.find().populate('inputs');
     return res.send({
         'data': data
     });

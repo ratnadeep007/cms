@@ -2,15 +2,23 @@ const express = require('express');
 const { 
   addToCollection, 
   getFromCollection, 
-  addSchema, 
-  getSchema,
+  addInput, 
+  getInput,
   getForm,
   addForm
 } = require('./src/api');
+const { initMongooseConnection, getMongooseDB, registerModels } = require('./src/db');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+
+initMongooseConnection();
+registerModels();
+
+const db = getMongooseDB();
+
 
 app.get('/status', (req, res) => {
   res.statusCode = 200;
@@ -19,8 +27,8 @@ app.get('/status', (req, res) => {
 
 app.post('/', addToCollection);
 app.get('/', getFromCollection);
-app.post('/schema', addSchema);
-app.get('/schema', getSchema);
+app.post('/input', addInput);
+app.get('/input', getInput);
 app.post('/form', addForm);
 app.get('/form', getForm);
 
